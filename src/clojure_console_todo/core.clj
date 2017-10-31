@@ -62,7 +62,8 @@
   (let [data (str-todo m)]
     (spit "todos.clj" data)))
 
-; http://tnoda-clojure.tumblr.com/post/28499910150/collection-literals-instead-of-json
 (defn load-file-todos [m]
-  (swap! m merge (read-string (slurp "todos.clj"))))
+  (swap! m merge 
+    (binding [*read-eval* false]
+      (read-string (slurp "todos.clj")))))
 
