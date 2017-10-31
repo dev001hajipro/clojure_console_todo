@@ -14,7 +14,12 @@
     :default 0
     :assoc-fn (fn [m k _] (update-in m [k] inc))]
    ;; A boolean option defaulting to nil
-   ["-h" "--help"]])
+   ["-h" "--help"]
+   ["-a" "--add" "Add todo"]
+   ["-l" "--ls" "Print todo list"]
+   ["-d" "--delete ID" "Delete todo by id"
+    :parse-fn #(Integer/parseInt %)]])
+   
 
 (def todos (atom []))
 
@@ -28,14 +33,36 @@
   (swap! todos #(remove (fn [item] (= (:id item) id)) %)))
   
 (defn -main [& args]
-  (println "Hello, Simple TODO list."))
-  ;((parse-opts args cli-options) :errors)
+  ; load-data
+  (do
+    (load-file-todos cache-todo))
+  (let [{:keys [options arguments errors summary]} (parse-opts args cli-options)]
+    (cond
+      (and (:add options) (= 2 (count arguments))) (do
+                                                     (print (nth arguments 0))
+                                                     (let [title (nth arguments 0), text (nth arguments 1)]
+                                                       (save-todo cache-todo (gen-todo-index cache-todo) (mk-todo title text)))
+                                                     (store-file-todos cache-todo))
+      (:delete options) (do 
+                          (rm-todo cache-todo (:delete options))
+                          (store-file-todos cache-todo))
+                                                     
+      (:ls options) (do (print @cache-todo))
+      (:help options) (do (print summary))
+      errors (do (print errors))
+      :else (print summary))))
+        
+        
+      
+
+  
+  
 
 (def cache-todo
   (atom {}))
 
 (defn gen-todo-index [m]
-  (inc (count m)))
+  (inc (count @m)))
   
 (defn mk-todo [title text]
   {:title title, :text text, :done false})
