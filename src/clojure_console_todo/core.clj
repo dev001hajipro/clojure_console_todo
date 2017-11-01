@@ -21,25 +21,14 @@
     :parse-fn #(Integer/parseInt %)]])
    
 
-(def todos (atom []))
-
-(defn create [title text]
-  {:id (hash title) :title title, :text text, :done false})
-
-(defn add [todo todos]
-  (swap! todos conj todo))
-
-(defn remove_ [id todos]
-  (swap! todos #(remove (fn [item] (= (:id item) id)) %)))
-  
 (defn -main [& args]
+  ; todo create a data file unless it exist. 
   ; load-data
   (do
     (load-file-todos cache-todo))
   (let [{:keys [options arguments errors summary]} (parse-opts args cli-options)]
     (cond
       (and (:add options) (= 2 (count arguments))) (do
-                                                     (print (nth arguments 0))
                                                      (let [title (nth arguments 0), text (nth arguments 1)]
                                                        (save-todo cache-todo (gen-todo-index cache-todo) (mk-todo title text)))
                                                      (store-file-todos cache-todo))
